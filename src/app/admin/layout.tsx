@@ -45,10 +45,15 @@ export default function AdminLayout({
               <span>ユーザー管理</span>
             </Link>
             
-            <Link href="#" className="flex items-center px-3 py-2.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-md transition-colors group font-medium">
-              <MessageSquareWarning className="h-5 w-5 mr-3 text-gray-400 group-hover:text-gray-600" />
+            <Link href="#" className="flex items-center px-3 py-2.5 bg-red-50 text-red-900 border border-red-100 rounded-md transition-colors group font-bold shadow-sm">
+              <MessageSquareWarning className="h-5 w-5 mr-3 text-red-500 group-hover:scale-110 transition-transform" />
               <span className="flex-1">監視・アラート</span>
-              <span className="bg-red-100 text-red-600 py-0.5 px-2 rounded-full text-xs font-bold">3</span>
+              <span className="relative flex h-5 w-5 mr-1">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-5 w-5 bg-red-500 text-white text-[10px] items-center justify-center shadow-sm">
+                  5
+                </span>
+              </span>
             </Link>
             
             <Link href="/admin/master/categories" className="flex items-center px-3 py-2.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-md transition-colors group font-medium">

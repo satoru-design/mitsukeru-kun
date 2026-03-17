@@ -5,11 +5,10 @@ import {
   CreditCard, 
   Percent,
   AlertTriangle,
-  UserCheck,
-  MessageSquareWarning,
   ArrowUpRight,
   ArrowDownRight
 } from 'lucide-react';
+import AdminAlertsList from './components/AdminAlertsList';
 
 export default function AdminDashboardPage() {
   return (
@@ -84,8 +83,8 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Alerts Panel */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col">
-          <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col h-[400px]">
+          <div className="p-5 border-b border-gray-100 flex items-center justify-between shrink-0">
             <h2 className="text-lg font-semibold text-gray-800 flex items-center">
               <AlertTriangle className="h-5 w-5 text-amber-500 mr-2" />
               要対応アラート
@@ -93,46 +92,9 @@ export default function AdminDashboardPage() {
             <span className="bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded-full">5件</span>
           </div>
           
-          <div className="flex-1 overflow-y-auto">
-            <ul className="divide-y divide-gray-100">
-              <AlertItem 
-                icon={<MessageSquareWarning className="h-5 w-5 text-red-500" />}
-                title="NGワード検知（直接取引の疑い）"
-                description="「LINE交換しませんか？」というメッセージが検知されました。"
-                time="10分前"
-                actionText="詳細確認"
-              />
-              <AlertItem 
-                icon={<UserCheck className="h-5 w-5 text-blue-500" />}
-                title="本人確認(KYC) 承認待ち"
-                description="株式会社クリーンアップ（業者）から免許証がアップロードされました。"
-                time="1時間前"
-                actionText="審査する"
-              />
-              <AlertItem 
-                icon={<CreditCard className="h-5 w-5 text-amber-500" />}
-                title="決済エラー"
-                description="ユーザーID: 10293 のクレジットカード決済（1500円）が失敗しました。"
-                time="2時間前"
-                actionText="詳細確認"
-              />
-              <AlertItem 
-                icon={<MessageSquareWarning className="h-5 w-5 text-red-500" />}
-                title="ユーザー通報"
-                description="「連絡が途絶えた」という理由で通報がありました。"
-                time="昨日 15:30"
-                actionText="詳細確認"
-              />
-              <AlertItem 
-                icon={<UserCheck className="h-5 w-5 text-blue-500" />}
-                title="本人確認(KYC) 承認待ち"
-                description="山田 清掃（業者）から資格証明書がアップロードされました。"
-                time="昨日 14:20"
-                actionText="審査する"
-              />
-            </ul>
-          </div>
-          <div className="p-3 border-t border-gray-100 bg-gray-50 rounded-b-xl text-center">
+          <AdminAlertsList />
+
+          <div className="p-3 border-t border-gray-100 bg-gray-50 rounded-b-xl text-center shrink-0">
             <button className="text-sm text-blue-600 font-medium hover:text-blue-800">すべてのアラートを見る</button>
           </div>
         </div>
@@ -143,46 +105,30 @@ export default function AdminDashboardPage() {
 
 function KpiCard({ title, value, subValue, trend, isPositive, icon }: any) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex flex-col">
+    <div className={`rounded-xl shadow-sm border p-5 flex flex-col transition-all hover:shadow-md ${
+      !isPositive && parseFloat(trend) < -2 ? 'bg-red-50/50 border-red-200' : 'bg-white border-gray-200'
+    }`}>
       <div className="flex justify-between items-start">
         <div>
-          <p className="text-sm font-medium text-gray-500">{title}</p>
-          <h3 className="text-2xl font-bold text-gray-900 mt-1">{value}</h3>
-          {subValue && <p className="text-xs text-gray-400 mt-1">{subValue}</p>}
+          <p className="text-sm font-bold text-gray-500">{title}</p>
+          <h3 className={`text-2xl font-black mt-1 tracking-tight ${
+            !isPositive && parseFloat(trend) < -2 ? 'text-red-900' : 'text-gray-900'
+          }`}>{value}</h3>
         </div>
-        <div className="p-2 bg-gray-50 rounded-lg">
+        <div className={`p-2 rounded-lg ${!isPositive && parseFloat(trend) < -2 ? 'bg-red-100' : 'bg-gray-50'}`}>
           {icon}
         </div>
       </div>
-      <div className="mt-4 flex items-center">
-        <span className={`flex items-center text-sm font-medium ${isPositive ? 'text-emerald-600' : 'text-red-500'}`}>
-          {isPositive ? <ArrowUpRight className="h-4 w-4 mr-1" /> : <ArrowDownRight className="h-4 w-4 mr-1" />}
+      {subValue && <p className="text-xs font-medium text-gray-400 mt-2">{subValue}</p>}
+      <div className="mt-auto pt-4 flex items-center">
+        <span className={`flex items-center text-sm font-black px-2 py-0.5 rounded-md ${
+          isPositive ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+        }`}>
+          {isPositive ? <ArrowUpRight className="h-4 w-4 mr-0.5" /> : <ArrowDownRight className="h-4 w-4 mr-0.5" />}
           {trend}
         </span>
-        <span className="text-xs text-gray-400 ml-2">前月比</span>
+        <span className="text-xs font-bold text-gray-400 ml-2">前月比</span>
       </div>
     </div>
-  );
-}
-
-function AlertItem({ icon, title, description, time, actionText }: any) {
-  return (
-    <li className="p-4 hover:bg-gray-50 transition-colors">
-      <div className="flex flex-start gap-4">
-        <div className="mt-1 flex-shrink-0">
-          {icon}
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-gray-900">{title}</p>
-          <p className="text-sm text-gray-500 mt-1 truncate">{description}</p>
-          <div className="mt-2 flex items-center justify-between">
-            <span className="text-xs text-gray-400">{time}</span>
-            <button className="text-xs font-medium text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-md transition-colors">
-              {actionText}
-            </button>
-          </div>
-        </div>
-      </div>
-    </li>
   );
 }
