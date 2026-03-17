@@ -1,9 +1,17 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import QuoteRequestForm from "../../vendor/[id]/QuoteRequestForm";
+import { 
+  ChevronLeft, Menu, Paperclip, Send, ShieldCheck, FileText, 
+  ChevronUp, ChevronDown, CheckCircle2, MessageSquare, PlusCircle, MoreVertical, X
+} from "lucide-react";
 
 export default function ChatClient({ chat, mockChats }: { chat: any; mockChats: any[] }) {
+  const [isQuoteDrawerOpen, setIsQuoteDrawerOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   // Format utility
   const formatTime = (isoStr: string) => {
     const d = new Date(isoStr);
@@ -16,35 +24,78 @@ export default function ChatClient({ chat, mockChats }: { chat: any; mockChats: 
   };
 
   return (
-    <>
-      {/* Header */}
-      <header className="header" style={{ borderBottom: '1px solid #eaeaea' }}>
-        <div className="container header-inner">
-          <div className="header-logo">
-            <Link href="/">
-              <img src="/assets/images/logo.png" alt="見つける君 ロゴ" />
-            </Link>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <Link href="/mypage" style={{ color: 'var(--color-primary)', fontWeight: 'bold', textDecoration: 'none' }}>マイページへ戻る</Link>
-          </div>
+    <div className="h-[100dvh] flex flex-col bg-white font-sans overflow-hidden">
+      
+      {/* Global Header */}
+      <header className="h-16 shrink-0 border-b border-gray-200 bg-white flex items-center justify-between px-4 sm:px-6 z-20">
+        <div className="flex items-center gap-3">
+          {/* Mobile Sidebar Toggle */}
+          <button 
+            className="md:hidden p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+            onClick={() => setIsSidebarOpen(true)}
+          >
+            <Menu className="w-6 h-6" />
+          </button>
+          <Link href="/" className="flex items-center">
+            <img src="/assets/images/logo.png" alt="見つける君 ロゴ" className="h-8 object-contain" />
+          </Link>
+        </div>
+        <div className="flex items-center gap-4">
+          <Link href="/mypage" className="text-sm font-bold text-orange-600 hover:text-orange-700 bg-orange-50 px-4 py-2 rounded-full transition-colors">
+            マイページ
+          </Link>
         </div>
       </header>
 
-      <div className="chat-layout">
-        {/* Left Sidebar: Thread List */}
-        <aside className="chat-sidebar">
-          <div className="chat-sidebar-header">
-            <h2>メッセージ一覧</h2>
+      {/* Main Layout */}
+      <div className="flex-1 flex overflow-hidden relative">
+        
+        {/* =========================================
+            Left Sidebar: Thread List (Desktop + Mobile Overlay)
+        ========================================= */}
+        {/* Mobile Overlay Background */}
+        {isSidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black/50 z-30 md:hidden" 
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
+        
+        <aside className={`
+          fixed md:relative inset-y-0 left-0 z-40 w-80 bg-gray-50 border-r border-gray-200 flex flex-col transition-transform duration-300 ease-in-out md:translate-x-0
+          ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
+        `}>
+          <div className="h-16 shrink-0 flex items-center justify-between px-5 border-b border-gray-200 bg-white">
+            <h2 className="font-bold text-gray-800 flex items-center gap-2">
+              <MessageSquare className="w-5 h-5 text-gray-400" />
+              メッセージ
+            </h2>
+            <button className="md:hidden p-2 -mr-2 text-gray-500 rounded-full hover:bg-gray-100" onClick={() => setIsSidebarOpen(false)}>
+              <X className="w-5 h-5" />
+            </button>
           </div>
-          <div className="chat-thread-list">
+          
+          <div className="flex-1 overflow-y-auto w-full">
             {mockChats.map(c => (
-              <Link href={`/chat/${c.id}`} key={c.id} className={`chat-thread-item ${c.id === chat.id ? 'active' : ''}`}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                  <span style={{ fontWeight: 'bold', fontSize: '0.9rem', color: '#111' }}>{c.vendorName}</span>
-                  {c.unreadCount > 0 && <span className="mypage-badge">{c.unreadCount}</span>}
+              <Link 
+                href={`/chat/${c.id}`} 
+                key={c.id} 
+                className={`block p-4 border-b border-gray-100 hover:bg-white transition-colors relative
+                  ${c.id === chat.id ? 'bg-white shadow-[inset_4px_0_0_0_#EA580C]' : ''}
+                `}
+                onClick={() => setIsSidebarOpen(false)}
+              >
+                <div className="flex justify-between items-start mb-1">
+                  <span className={`font-bold text-sm truncate pr-2 ${c.id === chat.id ? 'text-gray-900' : 'text-gray-700'}`}>
+                    {c.vendorName}
+                  </span>
+                  {c.unreadCount > 0 && (
+                     <span className="bg-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">
+                       {c.unreadCount}
+                     </span>
+                  )}
                 </div>
-                <div style={{ fontSize: '0.8rem', color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div className="text-xs text-gray-500 truncate">
                   {c.propertyName}
                 </div>
               </Link>
@@ -52,150 +103,286 @@ export default function ChatClient({ chat, mockChats }: { chat: any; mockChats: 
           </div>
         </aside>
 
-        {/* Center: Chat Execution Area */}
-        <main className="chat-main">
-          {/* Main Chat Header */}
-          <div className="chat-main-header">
-            <div className="chat-vendor-info">
-              <img src={chat.vendorAvatar} alt={chat.vendorName} />
-              <div>
-                <h2 style={{ fontSize: '1.2rem', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  {chat.vendorName}
-                  <span className="badge badge-feature" style={{ fontSize: '0.75rem', padding: '3px 8px' }}>{chat.status}</span>
+        {/* =========================================
+            Center: Chat Execution Area
+        ========================================= */}
+        <main className="flex-1 flex flex-col bg-[#F5F7FB] min-w-0 relative">
+          
+          {/* Chat Header */}
+          <div className="h-[72px] shrink-0 bg-white/80 backdrop-blur-md border-b border-gray-200 flex items-center justify-between px-4 sm:px-6 shadow-sm z-10">
+            <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
+              <img src={chat.vendorAvatar} alt={chat.vendorName} className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover border border-gray-100 shrink-0 shadow-sm" />
+              <div className="min-w-0">
+                <h2 className="font-bold text-sm md:text-base text-gray-900 flex items-center gap-2 truncate">
+                  <span className="truncate">{chat.vendorName}</span>
+                  {chat.status && (
+                    <span className="bg-green-100 text-green-700 text-[10px] md:text-xs font-bold px-2 py-0.5 rounded shrink-0">
+                      {chat.status}
+                    </span>
+                  )}
                 </h2>
-                <span style={{ fontSize: '0.85rem', color: '#666' }}>物件: {chat.propertyName}</span>
+                <div className="text-[11px] md:text-xs text-gray-500 truncate flex items-center gap-1 mt-0.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                  <span>本人確認済</span>
+                  <span className="mx-1 text-gray-300">|</span>
+                  <span className="truncate">{chat.propertyName}</span>
+                </div>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button 
-                onClick={() => alert("お気に入りに追加しました。")}
-                className="btn btn-outline" 
-                style={{ padding: '8px 15px', display: 'flex', alignItems: 'center', gap: '5px', borderRadius: '20px' }}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#eb4d4b" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-                お気に入り
-              </button>
-              <button 
-                onClick={() => alert("このユーザーをブロックしました。今後メッセージは届きません。")}
-                className="btn btn-outline" 
-                style={{ padding: '8px 15px', display: 'flex', alignItems: 'center', gap: '5px', borderRadius: '20px', color: '#888', borderColor: '#ddd' }}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
-                ブロック
+            
+            <div className="flex items-center shrink-0">
+              <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
+                <MoreVertical className="w-5 h-5 md:w-6 md:h-6" />
               </button>
             </div>
           </div>
 
-          <div className="chat-content-area">
-            {/* Messages Scroll Area */}
-            <div className="chat-messages-container">
-              <div className="chat-messages-scroll">
-                <div style={{ textAlign: 'center', fontSize: '0.8rem', color: '#888', margin: '10px 0' }}>
-                  {formatDateLabel(chat.messages[0].timestamp)}
-                </div>
-                
-                {chat.messages.map((msg: any) => (
-                  <div key={msg.id} className={`message-bubble ${msg.sender === 'user' ? 'message-mine' : 'message-theirs'}`}>
-                    {/* Simulated File Attachment */}
-                    {msg.text.includes("ファイル") && (
-                      <div style={{ background: 'rgba(0,0,0,0.05)', padding: '10px', borderRadius: '8px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                        <span style={{ fontSize: '0.85rem', color: '#333' }}>添付ファイル.pdf</span>
-                      </div>
+          {/* Messages Area */}
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 pb-32 md:pb-6">
+            <div className="flex justify-center mb-6">
+               <span className="bg-black/10 text-gray-600 text-xs font-medium px-3 py-1 rounded-full backdrop-blur-sm">
+                 {formatDateLabel(chat.messages[0].timestamp)}
+               </span>
+            </div>
+            
+            <div className="flex flex-col gap-4 max-w-3xl mx-auto">
+              {chat.messages.map((msg: any) => {
+                const isMine = msg.sender === 'user';
+                return (
+                  <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
+                    {!isMine && (
+                      <img src={chat.vendorAvatar} alt="vendor" className="w-8 h-8 rounded-full object-cover mr-2 shrink-0 mt-1 shadow-sm" />
                     )}
-                    <div>{msg.text}</div>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '5px', alignItems: 'center' }}>
-                      <span className="message-time">{formatTime(msg.timestamp)}</span>
-                      {/* Read status (LINE style) */}
-                      {msg.sender === 'user' && (
-                        <span style={{ fontSize: '0.7rem', color: '#888', marginTop: '2px' }}>既読</span>
-                      )}
+                    
+                    <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'} max-w-[85%] md:max-w-[75%]`}>
+                      <div className={`
+                        relative px-4 py-3 text-sm md:text-base whitespace-pre-wrap leading-relaxed
+                        ${isMine 
+                          ? 'bg-[#00B900] text-white rounded-2xl rounded-tr-sm shadow-[0_2px_5px_rgba(0,185,0,0.2)]' 
+                          : 'bg-white border border-gray-100 text-gray-800 rounded-2xl rounded-tl-sm shadow-[0_2px_5px_rgba(0,0,0,0.05)]'
+                        }
+                      `}>
+                        {/* File Attachment Mock */}
+                        {msg.text.includes("ファイル") && (
+                          <div className={`flex items-center gap-2 p-2 rounded-lg mb-2 cursor-pointer border ${isMine ? 'bg-white/20 border-white/30 hover:bg-white/30' : 'bg-gray-50 border-gray-200 hover:bg-gray-100'} transition-colors`}>
+                            <FileText className={`w-5 h-5 ${isMine ? 'text-white' : 'text-gray-500'}`} />
+                            <span className="text-xs font-medium underline underline-offset-2">添付資料.pdf</span>
+                          </div>
+                        )}
+                        {msg.text}
+                      </div>
+                      
+                      <div className="flex items-center gap-1 mt-1 px-1">
+                        {isMine && <span className="text-[10px] text-[#00B900] font-bold">既読</span>}
+                        <span className="text-[11px] text-gray-400 font-medium">{formatTime(msg.timestamp)}</span>
+                      </div>
                     </div>
                   </div>
-                ))}
-              </div>
+                );
+              })}
+            </div>
+          </div>
 
-              {/* Chat Input Area */}
-              <div className="chat-input-area" style={{ background: '#f8f9fa', padding: '15px' }}>
-                <div className="chat-input-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'white', padding: '8px 15px', borderRadius: '25px', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' }}>
-                  <button style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '5px', color: '#888' }} onClick={() => alert("ファイル選択ダイアログを開きます")}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+          {/* Chat Input Area (Sticky at bottom inside middle col) */}
+          <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-5 bg-gradient-to-t from-[#F5F7FB] via-[#F5F7FB] to-transparent">
+             <div className="max-w-3xl mx-auto flex items-end gap-2 bg-white p-2 rounded-2xl sm:rounded-[28px] shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-gray-100 transition-shadow focus-within:shadow-[0_4px_25px_rgba(0,0,0,0.12)] focus-within:border-gray-300">
+               <button className="p-3 text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded-full transition-colors shrink-0">
+                 <PlusCircle className="w-6 h-6 sm:w-7 sm:h-7" />
+               </button>
+               <textarea 
+                 className="flex-1 bg-transparent border-none resize-none max-h-32 min-h-[44px] py-3 px-1 text-sm md:text-base text-gray-800 focus:ring-0 placeholder-gray-400"
+                 placeholder="メッセージを入力..."
+                 rows={1}
+               ></textarea>
+               <button className="p-3 bg-[#00B900] text-white rounded-full hover:bg-green-600 transition-colors shadow-md hover:shadow-lg shrink-0 mr-1 mb-1">
+                 <Send className="w-5 h-5 sm:w-6 sm:h-6 ml-0.5" />
+               </button>
+             </div>
+          </div>
+          
+        </main>
+
+        {/* =========================================
+            Right Sidebar: Quote Details (Desktop)
+        ========================================= */}
+        <aside className="hidden lg:flex w-96 flex-col border-l border-gray-200 bg-white z-10 shrink-0">
+          <div className="h-16 shrink-0 flex items-center px-6 border-b border-gray-200 bg-gray-50/50">
+            <h3 className="font-bold text-gray-800 flex items-center gap-2">
+              <FileText className="w-5 h-5 text-gray-400" />
+              お見積り内容
+            </h3>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto p-6">
+            {chat.quote ? (
+              <div className="flex flex-col gap-6">
+                
+                {/* Master Price Card */}
+                <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
+                   <div className="absolute -right-6 -top-6 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+                   
+                   <div className="text-sm text-gray-300 font-medium mb-1 drop-shadow-sm flex items-center gap-1.5">
+                     <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                     安心の保証付き見積もり
+                   </div>
+                   <div className="flex items-baseline gap-1 mt-2">
+                     <span className="text-xl font-bold">¥</span>
+                     <span className="text-4xl font-black tracking-tight drop-shadow-md">
+                       {chat.quote.total.toLocaleString()}
+                     </span>
+                     <span className="text-sm font-medium text-gray-400 ml-1">(税込)</span>
+                   </div>
+                </div>
+
+                {/* Main Actions */}
+                <div className="flex flex-col gap-3">
+                  <button className="w-full flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 text-white font-bold py-4 rounded-xl shadow-[0_4px_14px_rgba(234,88,12,0.39)] hover:shadow-[0_6px_20px_rgba(234,88,12,0.4)] transition-all transform hover:-translate-y-0.5">
+                    <CheckCircle2 className="w-5 h-5" />
+                    この内容で依頼を確定する
                   </button>
-                  <textarea 
-                    className="chat-input-textarea"
-                    placeholder="メッセージを入力…"
-                    style={{ flex: 1, border: 'none', background: 'transparent', resize: 'none', minHeight: '40px', padding: '10px 0', fontSize: '1rem', outline: 'none' }}
-                  ></textarea>
-                  <button className="btn btn-primary" style={{ padding: '10px 20px', borderRadius: '20px', background: '#00B900', border: 'none' }}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                  <button className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-600 hover:text-gray-900 hover:bg-gray-50 font-bold py-3.5 rounded-xl transition-all">
+                    条件を変更して再計算
                   </button>
                 </div>
+
+                {/* Breakdown */}
+                <div className="bg-white border border-gray-100 rounded-xl shadow-sm p-1">
+                  <div className="bg-gray-50/80 px-4 py-3 border-b border-gray-100 rounded-t-lg">
+                    <h4 className="text-sm font-bold text-gray-700">料金内訳</h4>
+                  </div>
+                  <div className="p-2">
+                    {chat.quote.breakdown.map((item: any, idx: number) => (
+                      <div key={idx} className="flex justify-between items-start p-3 border-b border-dashed border-gray-100 last:border-0 hover:bg-orange-50/30 transition-colors rounded-lg">
+                        <div className="pr-4">
+                          <div className="text-sm font-bold text-gray-800 leading-snug">{item.item}</div>
+                          {item.quantity && item.unitPrice && (
+                            <div className="text-xs text-gray-500 mt-1 font-medium">
+                              ¥{item.unitPrice.toLocaleString()} × {item.quantity}
+                            </div>
+                          )}
+                        </div>
+                        <div className="font-black text-gray-900 shrink-0">
+                          ¥{item.price.toLocaleString()}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Form Editor Placeholder */}
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <p className="text-xs font-bold text-gray-400 mb-3 ml-1">条件を細かく変更する場合：</p>
+                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 opacity-60 pointer-events-none filter grayscale">
+                     <p className="text-xs text-center font-bold text-gray-500 mb-2">QuoteRequestFormコンポーネント</p>
+                     <QuoteRequestForm vendorId={chat.vendorId.toString()} basePrice={chat.quote.total - 1500} />
+                  </div>
+                </div>
+
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-64 text-gray-400 text-sm gap-3">
+                <ShieldCheck className="w-12 h-12 text-gray-200" />
+                <p>ただいまお見積りを算出中です。<br/>少々お待ちください。</p>
+              </div>
+            )}
+          </div>
+        </aside>
+
+        {/* =========================================
+            Mobile Quote Drawer (BottomSheet)
+        ========================================= */}
+        <div className={`
+          lg:hidden fixed inset-x-0 bottom-0 z-50 transition-transform duration-300 ease-in-out
+          ${isQuoteDrawerOpen ? 'translate-y-0' : 'translate-y-[calc(100%-80px)]'}
+        `}>
+          {/* Overlay when open */}
+          {isQuoteDrawerOpen && (
+            <div 
+              className="fixed inset-0 bg-black/40 z-[-1] transition-opacity" 
+              onClick={() => setIsQuoteDrawerOpen(false)}
+            />
+          )}
+
+          {/* Drawer Content */}
+          <div className="bg-white rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)] flex flex-col max-h-[85vh]">
+            
+            {/* Drawer Header / Handle */}
+            <div 
+              className="p-4 cursor-pointer flex flex-col items-center border-b border-gray-100 bg-white rounded-t-3xl"
+              onClick={() => setIsQuoteDrawerOpen(!isQuoteDrawerOpen)}
+            >
+              <div className="w-12 h-1.5 bg-gray-300 rounded-full mb-3" />
+              <div className="w-full flex justify-between items-center px-2">
+                <span className="font-bold text-gray-800 flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-gray-400" />
+                  お見積り内容
+                </span>
+                {!isQuoteDrawerOpen ? (
+                  <div className="font-black text-orange-600 text-xl flex items-center gap-1">
+                    ¥{chat.quote?.total.toLocaleString()}
+                    <ChevronUp className="w-5 h-5 text-gray-400 ml-1" />
+                  </div>
+                ) : (
+                  <ChevronDown className="w-5 h-5 text-gray-400" />
+                )}
               </div>
             </div>
 
-            {/* Right Sidebar: Quote Details (Mitsumore Style) */}
-            <aside className="chat-quote-sidebar">
-              <h3 style={{ fontSize: '1.2rem', marginBottom: '20px', borderBottom: '2px solid #eaeaea', paddingBottom: '10px' }}>お見積り内容</h3>
-              
-              {chat.quote ? (
-                <div className="quote-card">
-                  <div className="quote-header">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '5px', verticalAlign: 'middle' }}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                    安心の保証付き見積もり
-                  </div>
-                  <div className="quote-body">
-                    <div className="quote-total">
-                      ¥{chat.quote.total.toLocaleString()} <span>(税込)</span>
-                    </div>
+            {/* Drawer Scrollable Area */}
+            {isQuoteDrawerOpen && (
+              <div className="flex-1 overflow-y-auto p-5 pb-8">
+                {chat.quote ? (
+                  <div className="flex flex-col gap-5">
                     
-                    <div style={{ marginTop: '20px' }}>
-                      <h4 style={{ fontSize: '0.95rem', color: '#666', marginBottom: '10px' }}>料金内訳</h4>
-                      <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '8px' }}>
-                        {chat.quote.breakdown.map((item: any, idx: number) => (
-                          <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '0.9rem', borderBottom: idx !== chat.quote.breakdown.length - 1 ? '1px dashed #ddd' : 'none', paddingBottom: idx !== chat.quote.breakdown.length - 1 ? '8px' : '0' }}>
-                            <div>
-                              <div style={{ fontWeight: '500', color: '#333' }}>{item.item}</div>
-                              {item.quantity && item.unitPrice && (
-                                <div style={{ fontSize: '0.8rem', color: '#888', marginTop: '3px' }}>
-                                  単価: ¥{item.unitPrice.toLocaleString()} × {item.quantity}
-                                </div>
-                              )}
-                            </div>
-                            <span style={{ fontWeight: 'bold', color: '#111' }}>¥{item.price.toLocaleString()}</span>
+                    {/* Master Price Card */}
+                    <div className="bg-gray-900 rounded-2xl p-5 text-white shadow-md">
+                       <div className="text-xs text-gray-400 font-medium mb-1">総額見積もり</div>
+                       <div className="flex items-baseline gap-1">
+                         <span className="text-lg font-bold">¥</span>
+                         <span className="text-3xl font-black">{chat.quote.total.toLocaleString()}</span>
+                         <span className="text-xs font-medium text-gray-400 ml-1">(税込)</span>
+                       </div>
+                    </div>
+
+                    <button className="w-full flex items-center justify-center gap-2 bg-orange-600 active:bg-orange-700 text-white font-bold py-4 rounded-xl shadow-lg transition-colors">
+                      <CheckCircle2 className="w-5 h-5" />
+                      この内容で依頼を確定する
+                    </button>
+
+                    {/* Breakdown */}
+                    <div className="bg-white border text-sm border-gray-200 rounded-xl p-4">
+                      <h4 className="font-bold text-gray-700 mb-3 pb-2 border-b">料金内訳</h4>
+                      {chat.quote.breakdown.map((item: any, idx: number) => (
+                        <div key={idx} className="flex justify-between items-start py-2 border-b border-dashed border-gray-100 last:border-0 last:pb-0">
+                          <div className="pr-2">
+                            <div className="font-bold text-gray-800">{item.item}</div>
+                            {item.quantity && item.unitPrice && (
+                              <div className="text-xs text-gray-500 mt-0.5">
+                                ¥{item.unitPrice.toLocaleString()} × {item.quantity}
+                              </div>
+                            )}
                           </div>
-                        ))}
-                      </div>
+                          <div className="font-black text-gray-900 whitespace-nowrap">
+                            ¥{item.price.toLocaleString()}
+                          </div>
+                        </div>
+                      ))}
                     </div>
 
-                      <div style={{ marginTop: '30px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        <button className="btn btn-primary" style={{ width: '100%', padding: '15px', fontSize: '1.1rem', background: '#ff7f50', border: 'none' }}>
-                          この内容で依頼を確定する
-                        </button>
-                        <button 
-                          onClick={() => alert("【業者用機能】\n自動概算見積もりの金額や項目を編集し、再提示する画面が開きます。")}
-                          className="btn btn-outline" 
-                          style={{ width: '100%', padding: '10px', fontSize: '0.9rem', color: '#666', border: '1px solid #ccc' }}
-                        >
-                          業者の場合: 見積もり内容を修正・再提示
-                        </button>
-                      </div>
+                    <button className="w-full text-center text-sm font-bold text-gray-500 py-3 border border-gray-200 rounded-xl mt-2 active:bg-gray-50">
+                      条件を変更して再計算
+                    </button>
 
-                    {/* Interactive Quote Editor */}
-                    <div style={{ marginTop: '20px', borderTop: '1px solid #eaeaea', paddingTop: '15px' }}>
-                      <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '10px' }}>条件を変更して見積もりを再計算する：</p>
-                      <QuoteRequestForm vendorId={chat.vendorId.toString()} basePrice={chat.quote.total - 1500} />
-                    </div>
                   </div>
-                </div>
-              ) : (
-                <div style={{ padding: '30px', textAlign: 'center', background: '#f8f9fa', borderRadius: '8px', color: '#666' }}>
-                  現在お見積りを算出中です。<br/>しばらくお待ちください。
-                </div>
-              )}
-            </aside>
+                ) : (
+                   <p className="text-center text-gray-500 text-sm py-10">お見積りを算出中です...</p>
+                )}
+              </div>
+            )}
           </div>
-        </main>
+        </div>
+
       </div>
-    </>
+    </div>
   );
 }
