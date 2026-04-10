@@ -9,7 +9,8 @@ import {
   Settings, 
   LogOut,
   Bell,
-  Home
+  Home,
+  ListOrdered
 } from 'lucide-react';
 
 export default function AdminLayout({
@@ -59,6 +60,11 @@ export default function AdminLayout({
             <Link href="/admin/master/categories" className="flex items-center px-3 py-2.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-md transition-colors group font-medium">
               <FileText className="h-5 w-5 mr-3 text-gray-400 group-hover:text-gray-600" />
               <span>マスタ管理</span>
+            </Link>
+
+            <Link href="/admin/menus" className="flex items-center px-3 py-2.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-md transition-colors group font-medium">
+              <ListOrdered className="h-5 w-5 mr-3 text-gray-400 group-hover:text-gray-600" />
+              <span>メニュー管理</span>
             </Link>
             
             <div className="pt-6 pb-2 px-3 text-xs font-bold text-gray-400 uppercase tracking-wider">
