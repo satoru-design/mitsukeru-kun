@@ -28,7 +28,20 @@ interface MenuItem {
   numberMax?: number | '';
   numberStep?: number | '';
   numberUnit?: string;
+  notice: string;
 }
+
+const PROPERTY_HEARING_ITEMS = [
+  '物件所在地(郵便番号)', 
+  '物件種別', 
+  '広さ(㎡)', 
+  '間取り', 
+  '築年数', 
+  '階数', 
+  '部屋位置', 
+  'エレベーター', 
+  '駐車場'
+];
 
 const MOCK_SERVICES = [
   { id: '1', name: 'ハウスクリーニング', count: 12 },
@@ -53,9 +66,22 @@ export default function MenusManagementPage() {
       numberMin: 10,
       numberMax: 100,
       numberStep: 1,
-      numberUnit: '㎡'
+      numberUnit: '㎡',
+      notice: '不要な場合は0を入力してください'
     }
   ]);
+
+  // Service Basic Info States
+  const [currentServiceName, setCurrentServiceName] = useState('ハウスクリーニング');
+  const [hearingItems, setHearingItems] = useState<string[]>(['物件所在地(郵便番号)', '広さ(㎡)', '間取り']);
+
+  const toggleHearingItem = (item: string) => {
+    if (hearingItems.includes(item)) {
+      setHearingItems(hearingItems.filter(i => i !== item));
+    } else {
+      setHearingItems([...hearingItems, item]);
+    }
+  };
 
   // Form states
   const [categoryName, setCategoryName] = useState('');
@@ -64,6 +90,7 @@ export default function MenusManagementPage() {
   const [maxPrice, setMaxPrice] = useState<number | ''>('');
   const [questionName, setQuestionName] = useState('');
   const [description, setDescription] = useState('');
+  const [notice, setNotice] = useState('');
   const [questionType, setQuestionType] = useState<QuestionType>('number');
   const [useWizard, setUseWizard] = useState<boolean>(false);
   
@@ -85,6 +112,7 @@ export default function MenusManagementPage() {
       description,
       questionType,
       useWizard,
+      notice,
       ...(questionType === 'number' ? {
         numberMin,
         numberMax,
@@ -99,6 +127,7 @@ export default function MenusManagementPage() {
     setItemName('');
     setQuestionName('');
     setDescription('');
+    setNotice('');
     setMinPrice('');
     setMaxPrice('');
     setNumberMin('');
@@ -156,15 +185,77 @@ export default function MenusManagementPage() {
             </p>
           </div>
 
+          <div className="flex justify-end mb-4">
+            <Link 
+              href="/admin/menus/preview" 
+              className="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-md shadow-sm text-sm font-bold flex items-center transition-colors"
+            >
+              業者用見積作成画面をプレビュー ↗
+            </Link>
+          </div>
+
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-            {/* メニュー登録フォーム */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden h-fit">
-              <div className="bg-gradient-to-r from-indigo-600 to-blue-600 px-6 py-4">
-                <h2 className="text-lg font-bold text-white flex items-center">
-                  <Plus className="w-5 h-5 mr-2" />
-                  新規メニュー登録
-                </h2>
+            <div className="space-y-8">
+              {/* サービス基本情報登録フォーム */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div className="bg-gradient-to-r from-gray-700 to-gray-600 px-6 py-4">
+                  <h2 className="text-lg font-bold text-white flex items-center">
+                    <Settings className="w-5 h-5 mr-2" />
+                    サービス基本設定
+                  </h2>
+                </div>
+                <div className="p-6 space-y-5">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">サービス名</label>
+                    <input 
+                      type="text" 
+                      value={currentServiceName}
+                      onChange={(e) => setCurrentServiceName(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      事前ヒアリングする物件情報
+                      <span className="text-xs text-gray-500 font-normal ml-2">※チェックした項目が依頼フォームに表示されます</span>
+                    </label>
+                    <div className="grid grid-cols-2 gap-3 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                      {PROPERTY_HEARING_ITEMS.map(item => (
+                        <label key={item} className="flex items-center space-x-2 cursor-pointer group">
+                          <div className="relative flex items-center justify-center">
+                            <input 
+                              type="checkbox" 
+                              checked={hearingItems.includes(item)}
+                              onChange={() => toggleHearingItem(item)}
+                              className="peer sr-only"
+                            />
+                            <div className="w-5 h-5 border-2 border-gray-300 rounded-[4px] peer-checked:bg-indigo-600 peer-checked:border-indigo-600 transition-colors"></div>
+                            <CheckCircle2 className="w-3.5 h-3.5 text-white absolute opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" />
+                          </div>
+                          <span className="text-sm text-gray-700 font-medium group-hover:text-indigo-700 transition-colors">
+                            {item}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="pt-2">
+                    <button className="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-2.5 text-sm px-4 rounded-md shadow-sm transition-colors flex items-center justify-center">
+                      <Save className="w-4 h-4 mr-2" />
+                      基本設定を保存
+                    </button>
+                  </div>
+                </div>
               </div>
+
+              {/* メニュー登録フォーム */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden h-fit">
+                <div className="bg-gradient-to-r from-indigo-600 to-blue-600 px-6 py-4">
+                  <h2 className="text-lg font-bold text-white flex items-center">
+                    <Plus className="w-5 h-5 mr-2" />
+                    新規メニュー登録
+                  </h2>
+                </div>
               
               <form onSubmit={handleSubmit} className="p-6 space-y-5">
                 {/* 1. 見積分類名 & 2. 明細名 */}
@@ -243,6 +334,18 @@ export default function MenusManagementPage() {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  />
+                </div>
+
+                {/* 注意書き */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">注意書き <span className="text-xs text-gray-500 font-normal ml-2">(フォーム内での指示)</span></label>
+                  <input 
+                    type="text"
+                    placeholder="例: 不要な場合は0を入力してください"
+                    value={notice}
+                    onChange={(e) => setNotice(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-yellow-50"
                   />
                 </div>
 
@@ -366,9 +469,10 @@ export default function MenusManagementPage() {
                 </div>
               </form>
             </div>
+            </div>
 
             {/* 登録済みアイテム一覧リスト */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col min-h-[400px]">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col h-[calc(100vh-140px)] sticky top-6">
               <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
                 <h2 className="text-lg font-bold text-gray-800 flex items-center">
                   <ListOrdered className="w-5 h-5 mr-2 text-gray-500" />
@@ -447,8 +551,14 @@ export default function MenusManagementPage() {
                           )}
                           
                           {item.description && (
-                            <div className="mt-2 pt-2 border-t border-gray-200 text-xs text-gray-500 bg-yellow-50/50 p-2 rounded">
+                            <div className="mt-2 pt-2 border-t border-gray-200 text-xs text-gray-600 bg-gray-50 p-2 rounded">
                               <span className="font-semibold text-gray-700">備考: </span>{item.description}
+                            </div>
+                          )}
+
+                          {item.notice && (
+                            <div className="mt-2 text-xs text-amber-800 bg-amber-50 p-2 rounded border border-amber-200">
+                              <span className="font-semibold">注意書き: </span>{item.notice}
                             </div>
                           )}
                         </div>
