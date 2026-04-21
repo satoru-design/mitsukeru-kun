@@ -314,7 +314,7 @@ function SearchContent() {
                         </div>
                         <span className="text-xs font-bold text-gray-700 truncate max-w-[100px]">{service.providerName}</span>
                       </div>
-                      <Link href={`/vendor/${service.providerId}`} className="bg-gray-900 hover:bg-orange-600 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors shadow-sm">
+                      <Link href={`/vendor/${service.id}`} className="bg-gray-900 hover:bg-orange-600 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors shadow-sm">
                         詳細を見る
                       </Link>
                     </div>
