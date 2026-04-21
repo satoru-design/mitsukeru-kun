@@ -19,7 +19,9 @@ import {
   MoreVertical,
   Camera,
   Star,
-  FileText
+  FileText,
+  Zap,
+  X
 } from "lucide-react";
 
 export default function MyPage() {
