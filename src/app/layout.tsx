@@ -13,6 +13,8 @@ const notoSansJP = Noto_Sans_JP({
   weight: ["400", "500", "700", "900"],
 });
 
+import DevNavigation from "./components/DevNavigation";
+
 export const metadata: Metadata = {
   title: "見つける君 - 民泊清掃プロフェッショナル・マッチング",
   description: "民泊の清掃コストを最適化。スマホひとつで、信頼できる清掃プロがすぐ見つかる民泊オーナー向けマッチングプラットフォーム。",
@@ -29,6 +31,7 @@ export default function RootLayout({
         className={`${inter.variable} ${notoSansJP.variable} antialiased`}
       >
         {children}
+        <DevNavigation />
       </body>
     </html>
   );
