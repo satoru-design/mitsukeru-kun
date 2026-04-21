@@ -10,7 +10,12 @@ import {
   ListOrdered,
   CheckCircle2,
   ChevronRight,
-  FolderOpen
+  FolderOpen,
+  ChevronLeft,
+  LayoutTemplate,
+  Building2,
+  Copy,
+  Edit3
 } from 'lucide-react';
 
 type QuestionType = 'number' | 'boolean';
@@ -101,10 +106,12 @@ export default function MenusManagementPage() {
   const [numberStep, setNumberStep] = useState<number | ''>('');
   const [numberUnit, setNumberUnit] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleAddItem = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!categoryName || !itemName || !questionName) return;
+
     const newItem: MenuItem = {
-      id: Math.random().toString(36).substring(7),
+      id: Date.now().toString(),
       categoryName,
       itemName,
       minPrice,
@@ -113,461 +120,328 @@ export default function MenusManagementPage() {
       description,
       questionType,
       useWizard,
-      notice,
-      ...(questionType === 'number' ? {
-        numberMin,
-        numberMax,
-        numberStep,
-        numberUnit,
-      } : {})
+      numberMin: questionType === 'number' ? numberMin : undefined,
+      numberMax: questionType === 'number' ? numberMax : undefined,
+      numberStep: questionType === 'number' ? numberStep : undefined,
+      numberUnit: questionType === 'number' ? numberUnit : undefined,
+      notice
     };
 
-    setMenuItems([newItem, ...menuItems]);
-
-    // Reset some form fields
+    setMenuItems([...menuItems, newItem]);
+    
+    // Reset fields except category
     setItemName('');
+    setMinPrice('');
+    setMaxPrice('');
     setQuestionName('');
     setDescription('');
     setNotice('');
-    setMinPrice('');
-    setMaxPrice('');
     setNumberMin('');
     setNumberMax('');
     setNumberStep('');
     setNumberUnit('');
   };
 
-  const handleDelete = (id: string) => {
-    setMenuItems(menuItems.filter(item => item.id !== id));
+  const handleDeleteItem = (id: string) => {
+    if(confirm('この項目を削除しますか？')){
+      setMenuItems(menuItems.filter(item => item.id !== id));
+    }
   };
 
   return (
-    <div className="flex h-[calc(100vh-64px)] bg-gray-50 text-gray-900 w-full">
-      {/* 左カラム: サービス一覧 */}
-      <div className="w-1/4 min-w-[250px] bg-white border-r border-gray-200 flex flex-col overflow-y-auto">
-        <div className="p-4 border-b border-gray-200 bg-gray-50 flex sticky top-0">
-          <FolderOpen className="w-5 h-5 mr-2 text-indigo-600" />
-          <h2 className="font-bold text-gray-800">サービス一覧</h2>
-        </div>
-        <ul className="p-2 space-y-1">
-          {MOCK_SERVICES.map(service => (
-            <li key={service.id}>
-              <button
-                onClick={() => setSelectedServiceId(service.id)}
-                className={`w-full flex items-center justify-between p-3 rounded-md transition-colors ${
-                  selectedServiceId === service.id
-                    ? 'bg-indigo-50 text-indigo-700 border-l-4 border-indigo-600'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 border-l-4 border-transparent'
-                }`}
-              >
-                <span className="font-medium">{service.name}</span>
-                <span className={`text-xs px-2 py-1 rounded-full ${
-                  selectedServiceId === service.id ? 'bg-indigo-100 text-indigo-800' : 'bg-gray-100 text-gray-500'
-                }`}>
-                  {service.count}
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* 右カラム: 管理UIとフォーム */}
-      <div className="flex-1 flex flex-col overflow-y-auto">
-        <div className="p-6 max-w-5xl mx-auto w-full">
-          
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-              <Settings className="w-6 h-6 mr-3 text-indigo-600" />
-              メニュー・見積項目管理
-            </h1>
-            <p className="text-gray-500 mt-2">
-              選択中のサービスに対する見積メニューと、ユーザーへのヒアリング設問を設定します。
-            </p>
-          </div>
-
-          <div className="flex justify-end mb-4">
-            <Link 
-              href="/admin/menus/preview" 
-              className="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-md shadow-sm text-sm font-bold flex items-center transition-colors"
-            >
-              業者用見積作成画面をプレビュー ↗
+    <div className="min-h-[100dvh] bg-[#F1F5F9] pb-12 font-sans selection:bg-blue-500 selection:text-white">
+      
+      {/* Header */}
+      <header className="bg-white/90 backdrop-blur-xl border-b border-gray-200 px-4 sm:px-8 py-5 sticky top-0 z-30 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 max-w-[1600px] mx-auto">
+          <div className="flex items-center gap-4">
+            <Link href="/admin" className="text-gray-500 hover:text-gray-900 transition-colors bg-gray-100 hover:bg-gray-200 p-2.5 rounded-full">
+              <ChevronLeft className="w-5 h-5" />
             </Link>
+            <div>
+              <h1 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight flex items-center gap-2">
+                <LayoutTemplate className="w-6 h-6 text-blue-600" />
+                サービス＆見積項目マスタ設定
+              </h1>
+              <p className="text-sm font-bold text-gray-500 mt-1">業者およびオーナーが利用するテンプレートの管理</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <Link href="/admin/menus/preview" className="bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50 px-5 py-2.5 rounded-xl text-sm font-black transition-all shadow-sm">
+              変更をプレビュー
+            </Link>
+            <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl text-sm font-black transition-all shadow-lg hover:-translate-y-0.5 flex items-center gap-2">
+              <Save className="w-4 h-4" /> 全て保存して公開
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-8 mt-8 flex flex-col lg:flex-row gap-8">
+        
+        {/* Left Sidebar: Services List */}
+        <div className="w-full lg:w-80 shrink-0 flex flex-col gap-6">
+          
+          {/* Service Selector Block */}
+          <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+              <h2 className="font-black text-gray-900 flex items-center gap-2">
+                <FolderOpen className="w-5 h-5 text-gray-400" />
+                対象サービス
+              </h2>
+              <button className="text-blue-600 hover:bg-blue-50 p-1.5 rounded-lg transition-colors">
+                <Plus className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-3 flex flex-col gap-1 max-h-[300px] overflow-y-auto">
+              {MOCK_SERVICES.map(service => (
+                <button
+                  key={service.id}
+                  onClick={() => setSelectedServiceId(service.id)}
+                  className={`
+                    w-full flex items-center justify-between p-3.5 rounded-xl text-sm font-bold transition-all
+                    ${selectedServiceId === service.id 
+                      ? 'bg-blue-50 text-blue-700 shadow-sm border border-blue-100 scale-[1.02]' 
+                      : 'text-gray-700 hover:bg-gray-50 border border-transparent'
+                    }
+                  `}
+                >
+                  {service.name}
+                  <span className={`px-2 py-0.5 rounded-md text-[10px] ${selectedServiceId === service.id ? 'bg-blue-200 text-blue-800' : 'bg-gray-100 text-gray-500'}`}>
+                    {service.count} 項目
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-            <div className="space-y-8">
-              {/* サービス基本情報登録フォーム */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <div className="bg-gradient-to-r from-gray-700 to-gray-600 px-6 py-4">
-                  <h2 className="text-lg font-bold text-white flex items-center">
-                    <Settings className="w-5 h-5 mr-2" />
-                    サービス基本設定
-                  </h2>
-                </div>
-                <div className="p-6 space-y-5">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">サービス名</label>
-                    <input 
-                      type="text" 
-                      value={currentServiceName}
-                      onChange={(e) => setCurrentServiceName(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      事前ヒアリングする物件情報
-                      <span className="text-xs text-gray-500 font-normal ml-2">※チェックした項目が依頼フォームに表示されます</span>
-                    </label>
-                    <div className="grid grid-cols-2 gap-3 bg-gray-50 p-4 rounded-lg border border-gray-200">
-                      {PROPERTY_HEARING_ITEMS.map(item => (
-                        <label key={item} className="flex items-center space-x-2 cursor-pointer group">
-                          <div className="relative flex items-center justify-center">
-                            <input 
-                              type="checkbox" 
-                              checked={hearingItems.includes(item)}
-                              onChange={() => toggleHearingItem(item)}
-                              className="peer sr-only"
-                            />
-                            <div className="w-5 h-5 border-2 border-gray-300 rounded-[4px] peer-checked:bg-indigo-600 peer-checked:border-indigo-600 transition-colors"></div>
-                            <CheckCircle2 className="w-3.5 h-3.5 text-white absolute opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" />
-                          </div>
-                          <span className="text-sm text-gray-700 font-medium group-hover:text-indigo-700 transition-colors">
-                            {item}
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="pt-2">
-                    <button className="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-2.5 text-sm px-4 rounded-md shadow-sm transition-colors flex items-center justify-center">
-                      <Save className="w-4 h-4 mr-2" />
-                      基本設定を保存
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* メニュー登録フォーム */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden h-fit">
-                <div className="bg-gradient-to-r from-indigo-600 to-blue-600 px-6 py-4">
-                  <h2 className="text-lg font-bold text-white flex items-center">
-                    <Plus className="w-5 h-5 mr-2" />
-                    新規メニュー登録
-                  </h2>
-                </div>
+          {/* Service Wide Settings */}
+          {selectedServiceId && (
+            <div className="bg-white rounded-3xl shadow-sm border border-gray-200 p-6 animate-in slide-in-from-left-4 duration-300">
+              <h3 className="font-black text-gray-900 mb-4 flex items-center gap-2">
+                <Settings className="w-5 h-5 text-gray-400" />
+                サービス基本設定
+              </h3>
               
-              <form onSubmit={handleSubmit} className="p-6 space-y-5">
-                {/* 1. 見積分類名 & 2. 明細名 */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">見積分類名</label>
-                    <input 
-                      type="text" 
-                      required
-                      placeholder="例: 床清掃"
-                      value={categoryName}
-                      onChange={(e) => setCategoryName(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">明細名</label>
-                    <input 
-                      type="text" 
-                      required
-                      placeholder="例: 床清掃(㎡単価)"
-                      value={itemName}
-                      onChange={(e) => setItemName(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                  </div>
-                </div>
-
-                {/* 3. 単価下限 & 4. 単価上限 */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">単価下限 (円)</label>
-                    <input 
-                      type="number" 
-                      required
-                      min={0}
-                      value={minPrice}
-                      onChange={(e) => setMinPrice(e.target.value ? Number(e.target.value) : '')}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">単価上限 (円)</label>
-                    <input 
-                      type="number" 
-                      required
-                      min={0}
-                      value={maxPrice}
-                      onChange={(e) => setMaxPrice(e.target.value ? Number(e.target.value) : '')}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                  </div>
-                </div>
-
-                <hr className="my-4 border-gray-200" />
-
-                {/* 5. 設問名 */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">設問名</label>
+              <div className="mb-5">
+                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">サービス名</label>
+                <div className="relative">
                   <input 
                     type="text" 
-                    required
-                    placeholder="例: 床面積を教えてください"
-                    value={questionName}
-                    onChange={(e) => setQuestionName(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    value={currentServiceName}
+                    onChange={(e) => setCurrentServiceName(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 px-4 text-sm font-bold text-gray-900 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all pr-10"
                   />
+                  <Edit3 className="w-4 h-4 text-gray-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
+              </div>
 
-                {/* 6. 補足説明文 */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">補足説明文 <span className="text-xs text-gray-500 font-normal ml-2">(ユーザーへの注釈)</span></label>
-                  <textarea 
-                    rows={2}
-                    placeholder="UX改善のための追加項目例: 見積りに影響が出る可能性があるため、障害物がある場合は事前にお知らせください。"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  />
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <label className="block text-xs font-black text-gray-500 uppercase tracking-widest">要・事前のヒアリング項目</label>
                 </div>
-
-                {/* 注意書き */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">注意書き <span className="text-xs text-gray-500 font-normal ml-2">(フォーム内での指示)</span></label>
-                  <input 
-                    type="text"
-                    placeholder="例: 不要な場合は0を入力してください"
-                    value={notice}
-                    onChange={(e) => setNotice(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-yellow-50"
-                  />
+                <div className="flex flex-wrap gap-2">
+                  {PROPERTY_HEARING_ITEMS.map((item) => {
+                    const isSelected = hearingItems.includes(item);
+                    return (
+                      <button
+                        key={item}
+                        onClick={() => toggleHearingItem(item)}
+                        className={`
+                          text-xs font-bold px-3 py-2 rounded-lg border transition-all active:scale-95
+                          ${isSelected 
+                            ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm' 
+                            : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
+                          }
+                        `}
+                      >
+                       <div className="flex items-center gap-1.5">
+                         {isSelected && <CheckCircle2 className="w-3.5 h-3.5" />}
+                         {item}
+                       </div>
+                      </button>
+                    )
+                  })}
                 </div>
-
-                {/* 7. 設問種類 & 8. ウィザード利用 */}
-                <div className="grid grid-cols-2 gap-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">設問種類</label>
-                    <div className="space-y-2">
-                      <label className="flex items-center">
-                        <input 
-                          type="radio" 
-                          name="questionType" 
-                          value="number" 
-                          checked={questionType === 'number'} 
-                          onChange={() => setQuestionType('number')}
-                          className="text-indigo-600 focus:ring-indigo-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">数値選択</span>
-                      </label>
-                      <label className="flex items-center">
-                        <input 
-                          type="radio" 
-                          name="questionType" 
-                          value="boolean" 
-                          checked={questionType === 'boolean'} 
-                          onChange={() => setQuestionType('boolean')}
-                          className="text-indigo-600 focus:ring-indigo-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">ありなし選択</span>
-                      </label>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">ウィザード利用</label>
-                    <div className="space-y-2">
-                      <label className="flex items-center">
-                        <input 
-                          type="radio" 
-                          name="useWizard" 
-                          checked={useWizard === true} 
-                          onChange={() => setUseWizard(true)}
-                          className="text-indigo-600 focus:ring-indigo-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">する</span>
-                      </label>
-                      <label className="flex items-center">
-                        <input 
-                          type="radio" 
-                          name="useWizard" 
-                          checked={useWizard === false} 
-                          onChange={() => setUseWizard(false)}
-                          className="text-indigo-600 focus:ring-indigo-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">しない</span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 動的UI: 数値選択の場合のみ表示 */}
-                {questionType === 'number' && (
-                  <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <h3 className="text-sm font-semibold text-indigo-800 border-b border-indigo-200 pb-2">数値入力設定</h3>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-semibold text-indigo-700 mb-1">最小値 (Min)</label>
-                        <input 
-                          type="number" 
-                          required={questionType === 'number'}
-                          value={numberMin}
-                          onChange={(e) => setNumberMin(e.target.value ? Number(e.target.value) : '')}
-                          className="w-full px-3 py-2 border border-indigo-200 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-indigo-700 mb-1">最大値 (Max)</label>
-                        <input 
-                          type="number" 
-                          required={questionType === 'number'}
-                          value={numberMax}
-                          onChange={(e) => setNumberMax(e.target.value ? Number(e.target.value) : '')}
-                          className="w-full px-3 py-2 border border-indigo-200 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-semibold text-indigo-700 mb-1">数値刻み (Step)</label>
-                        <input 
-                          type="number" 
-                          required={questionType === 'number'}
-                          value={numberStep}
-                          onChange={(e) => setNumberStep(e.target.value ? Number(e.target.value) : '')}
-                          className="w-full px-3 py-2 border border-indigo-200 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-indigo-700 mb-1">数値単位</label>
-                        <input 
-                          type="text" 
-                          required={questionType === 'number'}
-                          placeholder="例: ㎡、台、箇所"
-                          value={numberUnit}
-                          onChange={(e) => setNumberUnit(e.target.value)}
-                          className="w-full px-3 py-2 border border-indigo-200 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div className="pt-4 border-t border-gray-200">
-                  <button
-                    type="submit"
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 text-sm px-4 rounded-md shadow-sm transition-colors flex items-center justify-center"
-                  >
-                    <Save className="w-5 h-5 mr-2" />
-                    このメニューを登録する
-                  </button>
-                </div>
-              </form>
+                <p className="text-[11px] font-bold text-gray-400 mt-3 leading-relaxed bg-gray-50 p-3 rounded-lg border border-gray-100">
+                  ※これらの項目は、このサービスで依頼が進む際にオーナー様へ入力を促します。
+                </p>
+              </div>
             </div>
-            </div>
+          )}
+        </div>
 
-            {/* 登録済みアイテム一覧リスト */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col h-[calc(100vh-140px)] sticky top-6">
-              <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-                <h2 className="text-lg font-bold text-gray-800 flex items-center">
-                  <ListOrdered className="w-5 h-5 mr-2 text-gray-500" />
-                  登録済み項目
+        {/* Right Area: Builder */}
+        <div className="flex-1 min-w-0 flex flex-col xl:flex-row gap-6">
+          
+          {/* Builder Form */}
+          <div className="flex-1 bg-white rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-gray-200 p-6 sm:p-8 animate-in slide-in-from-bottom-4 duration-500">
+            <div className="border-b border-gray-100 pb-5 mb-6 flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-black text-gray-900 flex items-center gap-2">
+                  <Plus className="w-6 h-6 text-blue-600 bg-blue-50 rounded-lg p-1" />
+                  新規見積項目の追加
                 </h2>
-                <span className="bg-gray-100 text-gray-600 text-xs font-bold px-3 py-1 rounded-full">
-                  {menuItems.length} 件
-                </span>
+                <p className="text-xs font-bold text-gray-500 mt-2">ウィザードなどで使用される詳細な質問・単価計算ロジックを構成します</p>
               </div>
-              
-              <div className="p-4 flex-1 overflow-y-auto bg-gray-50/50">
-                {menuItems.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full text-gray-400">
-                    <CheckCircle2 className="w-12 h-12 mb-2 text-gray-300" />
-                    <p>登録済みのメニューはまだありません</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {menuItems.map(item => (
-                      <div key={item.id} className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm relative group hover:border-indigo-300 transition-colors">
-                        <div className="flex justify-between items-start mb-2">
-                          <div>
-                            <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded">
-                              {item.categoryName}
-                            </span>
-                            <h3 className="font-bold text-gray-900 mt-2 text-lg">
-                              {item.itemName}
-                            </h3>
-                          </div>
-                          <button 
-                            onClick={() => handleDelete(item.id)}
-                            className="text-gray-400 hover:text-red-500 transition-colors p-1"
-                            title="削除"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                        
-                        <div className="flex items-center text-sm text-gray-600 mb-3 font-medium">
-                          <span className="bg-gray-100 px-2 py-0.5 rounded">¥{item.minPrice?.toLocaleString()} 〜 ¥{item.maxPrice?.toLocaleString()}</span>
-                        </div>
+            </div>
 
-                        <div className="bg-gray-50 rounded p-3 text-sm border border-gray-100">
-                          <div className="flex mb-1">
-                            <span className="text-gray-500 w-24 shrink-0">設問:</span>
-                            <span className="font-medium text-gray-800">{item.questionName}</span>
-                          </div>
-                          <div className="flex mb-1">
-                            <span className="text-gray-500 w-24 shrink-0">タイプ:</span>
-                            <span className="text-gray-800">
-                              {item.questionType === 'number' ? '数値選択' : 'ありなし選択'}
-                            </span>
-                          </div>
-                          <div className="flex mb-1">
-                            <span className="text-gray-500 w-24 shrink-0">ウィザード:</span>
-                            <span className="text-gray-800">
-                              {item.useWizard ? '利用する' : '利用しない'}
-                            </span>
-                          </div>
-                          
-                          {item.questionType === 'number' && (
-                            <div className="flex mt-2 pt-2 border-t border-gray-200 text-xs">
-                              <span className="text-indigo-600 font-medium mr-4">
-                                Min: {item.numberMin}
-                              </span>
-                              <span className="text-indigo-600 font-medium mr-4">
-                                Max: {item.numberMax}
-                              </span>
-                              <span className="text-indigo-600 font-medium mr-4">
-                                Step: {item.numberStep}
-                              </span>
-                              <span className="text-indigo-600 font-medium">
-                                単位: {item.numberUnit}
-                              </span>
-                            </div>
-                          )}
-                          
-                          {item.description && (
-                            <div className="mt-2 pt-2 border-t border-gray-200 text-xs text-gray-600 bg-gray-50 p-2 rounded">
-                              <span className="font-semibold text-gray-700">備考: </span>{item.description}
-                            </div>
-                          )}
-
-                          {item.notice && (
-                            <div className="mt-2 text-xs text-amber-800 bg-amber-50 p-2 rounded border border-amber-200">
-                              <span className="font-semibold">注意書き: </span>{item.notice}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+            <form onSubmit={handleAddItem} className="space-y-8 max-w-2xl">
+              {/* Category & Item */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-gray-50/50 rounded-2xl border border-gray-100">
+                <div className="space-y-2">
+                  <label className="block text-xs font-black text-gray-900 uppercase">大分類カテゴリ</label>
+                  <input required type="text" placeholder="例: 床清掃" value={categoryName} onChange={e => setCategoryName(e.target.value)} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all shadow-sm" />
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-xs font-black text-gray-900 uppercase">項目名</label>
+                  <input required type="text" placeholder="例: フローリングワックス掛け" value={itemName} onChange={e => setItemName(e.target.value)} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all shadow-sm" />
+                </div>
               </div>
+
+              {/* Pricing */}
+              <div>
+                 <label className="block text-sm font-black text-gray-900 mb-3 border-l-4 border-amber-400 pl-3">業者側設定可能 単価レンジ</label>
+                 <div className="flex items-center gap-4 bg-amber-50/30 p-5 rounded-2xl border border-amber-100">
+                   <div className="flex items-center">
+                     <span className="bg-white border-y border-l border-gray-200 text-gray-500 px-4 py-3 rounded-l-xl font-bold">¥</span>
+                     <input required type="number" placeholder="1000" value={minPrice} onChange={e => setMinPrice(e.target.value ? Number(e.target.value) : '')} className="w-32 bg-white border border-gray-200 border-x-0 py-3 px-3 text-sm font-bold text-center focus:z-10 outline-none focus:border-blue-500" />
+                   </div>
+                   <span className="font-black text-gray-400">〜</span>
+                   <div className="flex items-center">
+                     <span className="bg-white border-y border-l border-gray-200 text-gray-500 px-4 py-3 rounded-l-xl font-bold">¥</span>
+                     <input required type="number" placeholder="3000" value={maxPrice} onChange={e => setMaxPrice(e.target.value ? Number(e.target.value) : '')} className="w-32 bg-white border border-gray-200 py-3 px-3 text-sm font-bold rounded-r-xl text-center focus:z-10 outline-none focus:border-blue-500 shadow-sm" />
+                   </div>
+                 </div>
+              </div>
+
+              <div className="border-t border-gray-100"></div>
+
+              {/* Question Definition */}
+              <div>
+                 <label className="block text-sm font-black text-gray-900 mb-4 border-l-4 border-blue-500 pl-3">見込み顧客への質問（ウィザード表示用）</label>
+                 <div className="space-y-5">
+                   <div className="space-y-2">
+                     <label className="text-xs font-black text-gray-500">質問タイトル</label>
+                     <input required type="text" placeholder="例: 清掃面積を教えてください" value={questionName} onChange={e => setQuestionName(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:bg-white focus:border-blue-500 outline-none transition-all" />
+                   </div>
+                   
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <div className="space-y-2">
+                       <label className="text-xs font-black text-gray-500">質問タイプ</label>
+                       <div className="flex bg-gray-100 p-1 rounded-xl">
+                         <button type="button" onClick={() => setQuestionType('number')} className={`flex-1 py-2 text-sm font-black rounded-lg transition-all ${questionType === 'number' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}>
+                           数値入力 (数量)
+                         </button>
+                         <button type="button" onClick={() => setQuestionType('boolean')} className={`flex-1 py-2 text-sm font-black rounded-lg transition-all ${questionType === 'boolean' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}>
+                           「はい/いいえ」
+                         </button>
+                       </div>
+                     </div>
+                     <div className="space-y-3 pt-6">
+                       <label className="flex justify-center items-center gap-3 p-3 border-2 border-dashed rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
+                         <input type="checkbox" checked={useWizard} onChange={e => setUseWizard(e.target.checked)} className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                         <span className="text-sm font-black text-gray-700">自動見積もりの対象にする</span>
+                       </label>
+                     </div>
+                   </div>
+
+                   {/* Conditional Numeric Inputs */}
+                   {questionType === 'number' && (
+                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-5 bg-blue-50/50 rounded-2xl border border-blue-100">
+                       <div className="col-span-2 md:col-span-1 space-y-2">
+                         <label className="text-[10px] font-black text-blue-800 uppercase">最小値</label>
+                         <input type="number" value={numberMin} onChange={e => setNumberMin(e.target.value ? Number(e.target.value) : '')} placeholder="例: 10" className="w-full bg-white border border-blue-200 rounded-xl px-3 py-2 text-sm font-bold focus:border-blue-500 outline-none text-center shadow-sm" />
+                       </div>
+                       <div className="col-span-2 md:col-span-1 space-y-2">
+                         <label className="text-[10px] font-black text-blue-800 uppercase">最大値</label>
+                         <input type="number" value={numberMax} onChange={e => setNumberMax(e.target.value ? Number(e.target.value) : '')} placeholder="例: 100" className="w-full bg-white border border-blue-200 rounded-xl px-3 py-2 text-sm font-bold focus:border-blue-500 outline-none text-center shadow-sm" />
+                       </div>
+                       <div className="col-span-2 md:col-span-1 space-y-2">
+                         <label className="text-[10px] font-black text-blue-800 uppercase">ステップ</label>
+                         <input type="number" value={numberStep} onChange={e => setNumberStep(e.target.value ? Number(e.target.value) : '')} placeholder="例: 1" className="w-full bg-white border border-blue-200 rounded-xl px-3 py-2 text-sm font-bold focus:border-blue-500 outline-none text-center shadow-sm" />
+                       </div>
+                       <div className="col-span-2 md:col-span-1 space-y-2">
+                         <label className="text-[10px] font-black text-blue-800 uppercase">単位</label>
+                         <input type="text" value={numberUnit} onChange={e => setNumberUnit(e.target.value)} placeholder="例: ㎡" className="w-full bg-white border border-blue-200 rounded-xl px-3 py-2 text-sm font-bold focus:border-blue-500 outline-none text-center shadow-sm" />
+                       </div>
+                     </div>
+                   )}
+
+                   <div className="space-y-2">
+                     <label className="text-xs font-black text-gray-500 flex justify-between">
+                       <span>説明・補足テキスト</span>
+                       <span className="text-gray-400">オプショナル</span>
+                     </label>
+                     <textarea rows={2} value={description} onChange={e => setDescription(e.target.value)} placeholder="顧客向けに、どう入力すればよいかのヒントを記載" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:bg-white focus:border-blue-500 outline-none transition-all resize-y" />
+                   </div>
+
+                   <div className="space-y-2">
+                     <label className="text-xs font-black text-red-500 flex justify-between">
+                       <span>注意書きフィールド</span>
+                       <span className="text-red-300">Phase 0 要件</span>
+                     </label>
+                     <textarea rows={2} value={notice} onChange={e => setNotice(e.target.value)} placeholder="例：駐車スペースがない場合は別途パーキング代を頂戴します。" className="w-full bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm font-bold text-red-900 placeholder-red-300 focus:bg-white focus:border-red-400 outline-none transition-all resize-y" />
+                   </div>
+                 </div>
+              </div>
+
+              <div className="pt-4 border-t border-gray-100 flex justify-end">
+                <button type="submit" className="bg-gray-900 hover:bg-black text-white px-8 py-4 rounded-xl font-black transition-all shadow-lg hover:-translate-y-0.5 flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5" /> 変更をリストに追加
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Current Items List */}
+          <div className="w-full xl:w-[450px] shrink-0 bg-white rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-gray-200 flex flex-col h-[800px] xl:sticky xl:top-28 xl:self-start">
+            <div className="p-6 border-b border-gray-100 bg-gray-50/50 rounded-t-3xl">
+              <h3 className="font-black text-gray-900 flex items-center justify-between">
+                <span className="flex items-center gap-2"><ListOrdered className="w-5 h-5 text-gray-400" /> 現在の設定項目</span>
+                <span className="bg-gray-200 text-gray-700 text-xs px-2.5 py-0.5 rounded-md">{menuItems.length} 件</span>
+              </h3>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/50">
+               {menuItems.map(item => (
+                 <div key={item.id} className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm relative group hover:border-blue-300 hover:shadow-md transition-all">
+                   <div className="absolute -top-3 -left-2 bg-gradient-to-r from-gray-800 to-gray-700 text-white text-[10px] font-black px-3 py-1 rounded-full shadow-md z-10 border border-gray-900">
+                     {item.categoryName}
+                   </div>
+                   <button onClick={() => handleDeleteItem(item.id)} className="absolute top-4 right-4 text-gray-300 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-colors">
+                     <Trash2 className="w-4 h-4" />
+                   </button>
+                   
+                   <div className="pt-2 mb-3 pr-8">
+                     <h4 className="font-black text-gray-900 text-base leading-snug">{item.itemName}</h4>
+                     <p className="text-[11px] font-bold text-gray-500 mt-1 flex gap-1">
+                       {item.questionType === 'number' ? <span className="text-blue-600 bg-blue-50 px-1 rounded">数値型</span> : <span className="text-emerald-600 bg-emerald-50 px-1 rounded">真偽型</span>}
+                       {item.useWizard && <span className="text-amber-600 bg-amber-50 px-1 rounded">見積反映</span>}
+                     </p>
+                   </div>
+                   
+                   <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 mb-3 relative overflow-hidden">
+                     <div className="absolute top-0 bottom-0 left-0 w-1 bg-blue-500"></div>
+                     <p className="text-xs font-bold text-gray-800 leading-relaxed mb-1">{item.questionName}</p>
+                     {item.notice && <p className="text-[10px] font-bold text-red-600 leading-snug break-words">【注】{item.notice}</p>}
+                   </div>
+
+                   <div className="flex items-center justify-between mt-auto">
+                     <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">単価設定幅</span>
+                     <span className="font-black text-gray-900">¥{item.minPrice.toLocaleString()} 〜 ¥{item.maxPrice.toLocaleString()}</span>
+                   </div>
+                 </div>
+               ))}
+               
+               {menuItems.length === 0 && (
+                 <div className="h-full flex flex-col items-center justify-center text-gray-400 gap-3 border-2 border-dashed border-gray-200 rounded-2xl m-2 opacity-60 bg-white">
+                   <ListOrdered className="w-10 h-10 text-gray-300" />
+                   <div className="text-sm font-bold text-center">
+                     まだ項目がありません<br/><p className="text-xs font-medium mt-1 text-gray-400">フォームから新規追加してください</p>
+                   </div>
+                 </div>
+               )}
             </div>
           </div>
         </div>
