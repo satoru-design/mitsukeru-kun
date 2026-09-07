@@ -18,6 +18,15 @@ import DevNavigation from "./components/DevNavigation";
 export const metadata: Metadata = {
   title: "見つける君 - 民泊清掃プロフェッショナル・マッチング",
   description: "民泊の清掃コストを最適化。スマホひとつで、信頼できる清掃プロがすぐ見つかる民泊オーナー向けマッチングプラットフォーム。",
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true,
+    googleBot: {
+      index: false,
+      follow: false,
+    },
+  },
 };
 
 export default function RootLayout({
