@@ -1,9 +1,23 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import Script from "next/script";
+import { useRouter } from "next/navigation";
 import { Building2, User, MapPin, Home, Phone, Mail, ArrowRight, ShieldCheck, CheckCircle2 } from "lucide-react";
 
 export default function Register() {
+  const router = useRouter();
+
+  // 氏名・電話番号・メールアドレス・物件所在地を GET で送信すると、
+  // それらがクエリ文字列として URL に残り、ブラウザ履歴・アクセスログ・
+  // 遷移先から送出される Referer に個人情報が漏れる。
+  // 送信はクライアント側で受け止め、個人情報を URL に載せずに遷移する。
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    router.push("/thanks");
+  };
+
   return (
     <div className="min-h-screen bg-white flex flex-col md:flex-row font-sans selection:bg-orange-500 selection:text-white">
       
@@ -71,7 +85,7 @@ export default function Register() {
               <p className="mt-3 text-sm font-bold text-gray-500">以下の項目を入力し、プラットフォームに参加してください。</p>
             </div>
 
-            <form action="/thanks" method="GET" className="space-y-6 h-adr">
+            <form onSubmit={handleSubmit} className="space-y-6 h-adr">
               <span className="p-country-name" style={{ display: "none" }}>Japan</span>
               
               {/* Company / Name */}

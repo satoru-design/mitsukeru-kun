@@ -34,7 +34,13 @@ export default function DevNavigation() {
 
   if (!mounted) return null;
 
-  // Only render in dev mode theoretically, but we'll show it for Satoru always for now
+  // 開発・確認用メニュー。本番ビルドでは描画しない。
+  // 本番に出すと管理画面(/admin 配下)のパス一覧を未認証の訪問者に提示することになり、
+  // かつルート定義ごとクライアントバンドルに含まれてしまう。
+  // process.env.NODE_ENV はビルド時に静的置換されるため、本番ではこの分岐以下が
+  // バンドルから除去される。
+  if (process.env.NODE_ENV === "production") return null;
+
   return (
     <>
       <button 
